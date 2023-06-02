@@ -21,7 +21,7 @@ bool fileExists(const std::string& filePath);
 class CrackInfer {
 public:
     CrackInfer(const std::string& config_file);
-    std::vector<std::pair<int, cv::Mat>> batchinfer(const std::vector<std::string> &images_path);
+    std::vector<std::pair<std::set<int>, cv::Mat>> batchinfer(const std::vector<std::string> &images_path);
 private:
     fastdeploy::vision::segmentation::PaddleSegModel* model;
     fastdeploy::RuntimeOption option;

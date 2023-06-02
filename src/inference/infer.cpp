@@ -42,6 +42,7 @@ void CrackInfer::setRuntimeOption(const YAML::Node& config) {
         }
     } else if (backend.find("TensorRT") != std::string::npos) {
         option.UseTrtBackend();
+        option.trt_option.max_workspace_size = 7ull << 30;
         option.trt_option.enable_fp16 = config["enable_fp16"].as<bool>();
         option.trt_option.serialize_file = config["model_dir"].as<std::string>() + sep + "model.trt";
         for (auto shape : config["set_shape"]) {
@@ -58,11 +59,11 @@ void CrackInfer::setRuntimeOption(const YAML::Node& config) {
 }
 
 
-std::vector<std::pair<int, cv::Mat>> CrackInfer::batchinfer(const std::vector<std::string>& images_path) {
+std::vector<std::pair<std::set<int>, cv::Mat>> CrackInfer::batchinfer(const std::vector<std::string>& images_path) {
     std::cout << "Predicting ...... " << std::endl;
 
     std::vector<cv::Mat> images;
-    std::vector<std::pair<int, cv::Mat>> predicts;
+    std::vector<std::pair<std::set<int>, cv::Mat>> predicts;
     std::vector<fastdeploy::vision::SegmentationResult> results;
 
     // Split images into batches
@@ -97,11 +98,7 @@ std::vector<std::pair<int, cv::Mat>> CrackInfer::batchinfer(const std::vector<st
             int label = 0;
             cv::Mat vis_image = fastdeploy::vision::VisSegmentation(images[idx], results[idx]);
             std::set<int> labels(results[idx].label_map.begin(), results[idx].label_map.end());
-            if (labels.size() != 1) {
-                label = 1;
-            }
-
-            predicts.push_back(std::make_pair(label, vis_image));
+            predicts.push_back(std::make_pair(labels, vis_image));
         }
     }
 
